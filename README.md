@@ -45,6 +45,7 @@ Welcome! Here you will find everything you need to know to get started with and 
 - [Authenticate with GitHub](documentation/tutorials/github.md)
 - [Authenticate with Google](documentation/tutorials/google.md)
 - [Authenticate with Magic Links](documentation/tutorials/magic-links.md)
+- [Authenticate with Stytch](documentation/tutorials/stytch.md)
 - [Authenticate with Slack](documentation/tutorials/slack.md)
 - [Authenticate with Passwords](documentation/tutorials/password.md)
 - [Confirmation](documentation/tutorials/confirmation.md)
@@ -64,6 +65,7 @@ Welcome! Here you will find everything you need to know to get started with and 
 - [AshAuthentication.Strategy.OAuth2 DSL](documentation/dsls/DSL-AshAuthentication.Strategy.OAuth2.md)
 - [AshAuthentication.Strategy.Oidc DSL](documentation/dsls/DSL-AshAuthentication.Strategy.Oidc.md)
 - [AshAuthentication.Strategy.Password DSL](documentation/dsls/DSL-AshAuthentication.Strategy.Password.md)
+- [AshAuthentication.Strategy.Stytch DSL](documentation/dsls/DSL-AshAuthentication.Strategy.Stytch.md)
 - [AshAuthentication.TokenResource DSL](documentation/dsls/DSL-AshAuthentication.TokenResource.md)
 - [AshAuthentication.UserIdentity DSL](documentation/dsls/DSL-AshAuthentication.UserIdentity.md)
 - For other reference documentation, see the sidebar & search bar

@@ -95,6 +95,8 @@ defmodule AshAuthentication.MixProject do
          search_data: Spark.Docs.search_data_for(AshAuthentication.Strategy.Password)},
         {"documentation/dsls/DSL-AshAuthentication.Strategy.Slack.md",
          search_data: Spark.Docs.search_data_for(AshAuthentication.Strategy.Slack)},
+        {"documentation/dsls/DSL-AshAuthentication.Strategy.Stytch.md",
+         search_data: Spark.Docs.search_data_for(AshAuthentication.Strategy.Stytch)},
         {"documentation/dsls/DSL-AshAuthentication.TokenResource.md",
          search_data: Spark.Docs.search_data_for(AshAuthentication.TokenResource)},
         {"documentation/dsls/DSL-AshAuthentication.UserIdentity.md",
@@ -112,6 +114,7 @@ defmodule AshAuthentication.MixProject do
         "documentation/tutorials/google.md",
         "documentation/tutorials/magic-links.md",
         "documentation/tutorials/password.md",
+        "documentation/tutorials/stytch.md",
         "documentation/tutorials/slack.md"
       ],
       groups_for_extras: [
@@ -168,7 +171,8 @@ defmodule AshAuthentication.MixProject do
           AshAuthentication.Strategy.OAuth2,
           AshAuthentication.Strategy.Oidc,
           AshAuthentication.Strategy.Password,
-          AshAuthentication.Strategy.Slack
+          AshAuthentication.Strategy.Slack,
+          AshAuthentication.Strategy.Stytch
         ],
         Cryptography: [
           AshAuthentication.HashProvider,
@@ -258,6 +262,7 @@ defmodule AshAuthentication.MixProject do
       "AshAuthentication.Strategy.Password",
       "AshAuthentication.Strategy.RememberMe",
       "AshAuthentication.Strategy.Slack",
+      "AshAuthentication.Strategy.Stytch",
       "AshAuthentication.TokenResource",
       "AshAuthentication.UserIdentity"
     ]

@@ -27,6 +27,13 @@ config :ash_authentication,
         token_url: "https://example.com/oauth/token",
         user_url: "https://example.com/userinfo",
         trusted_audiences: ["01234", "56789"]
+      ],
+      stytch: [
+        client_id: "pretend stytch client id",
+        redirect_uri: "http://localhost:4000/auth",
+        client_secret: "pretend stytch client secret",
+        base_url: "https://stytch.example.com/",
+        trusted_audiences: ["https://example.com/mcp"]
       ]
     ],
     tokens: [
