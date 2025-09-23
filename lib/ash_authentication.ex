@@ -123,6 +123,7 @@ defmodule AshAuthentication do
     AshAuthentication.Strategy.MagicLink,
     AshAuthentication.Strategy.OAuth2,
     AshAuthentication.Strategy.Oidc,
+    AshAuthentication.Strategy.Stytch,
     AshAuthentication.Strategy.Password,
     AshAuthentication.Strategy.RememberMe,
     AshAuthentication.Strategy.Slack
