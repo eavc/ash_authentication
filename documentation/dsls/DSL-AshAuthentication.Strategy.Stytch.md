@@ -17,6 +17,12 @@ that strategy remain available. The Stytch wrapper adjusts defaults so that
 fetched from Stytch's OAuth authorization server metadata endpoint
 (`/.well-known/oauth-authorization-server`).
 
+Note on discovery: Stytch exposes OAuth 2.1 Authorization Server metadata,
+which differs from the standard OIDC provider discovery path
+`/.well-known/openid-configuration`. Assent and this strategy only require the
+standard authorization, token, JWKS, and issuer fields, which are present in
+Stytch's Authorization Server metadata, so this default is intentional.
+
 ### Minimum configuration
 
   * `client_id`
@@ -42,8 +48,15 @@ Provides an authentication strategy preconfigured for Stytch Connected Apps acti
 
 This strategy inherits all configuration from the `:oidc` strategy. Use it when your Stytch project issues tokens for your MCP server. Provide your project domain via `base_url` (for example, `https://your-project.customers.stytch.com`) or a custom domain and Stytch client credentials via secrets.
 
+Discovery note: Stytch publishes OAuth 2.1 Authorization Server metadata
+at `/.well-known/oauth-authorization-server`, rather than the OIDC provider
+discovery path `/.well-known/openid-configuration`. The required fields for
+this strategy (authorization, token, JWKS, issuer) are present in Stytch's
+Authorization Server metadata, so the Stytch strategy defaults to that path
+on purpose.
+
 ###### More documentation:
-- The [Stytch Tutorial](/documentation/tutorial/stytch.md).
+- The [Stytch Tutorial](/documentation/tutorials/stytch.md).
 - The [OIDC documentation](`AshAuthentication.Strategy.Oidc`)
 
 
@@ -63,14 +76,15 @@ This strategy inherits all configuration from the `:oidc` strategy. Use it when 
 | [`client_id`](#authentication-strategies-stytch-client_id){: #authentication-strategies-stytch-client_id .spark-required} | `(any, any -> any) \| module \| String.t` |  | The OAuth2 client ID.  Takes either a module which implements the `AshAuthentication.Secret` behaviour, a 2 arity anonymous function or a string. |
 | [`base_url`](#authentication-strategies-stytch-base_url){: #authentication-strategies-stytch-base_url .spark-required} | `(any, any -> any) \| module \| String.t` |  | The base URL of the OAuth2 server - including the leading protocol (ie `https://`).  Takes either a module which implements the `AshAuthentication.Secret` behaviour, a 2 arity anonymous function or a string. For Stytch, set this to your project domain (eg `https://example.customers.stytch.com`) or to your configured custom domain. |
 | [`redirect_uri`](#authentication-strategies-stytch-redirect_uri){: #authentication-strategies-stytch-redirect_uri .spark-required} | `(any, any -> any) \| module \| String.t` |  | The callback URI *base*. Not the whole URI back to the callback endpoint, but the URI to your `AuthPlug`. Takes either a module which implements the `AshAuthentication.Secret` behaviour, a 2 arity anonymous function or a string. |
+| [`resource_indicator`](#authentication-strategies-stytch-resource_indicator){: #authentication-strategies-stytch-resource_indicator } | `(any, any -> any) \| module \| String.t` |  | The RFC 8707 resource indicator to request tokens for (eg `https://example.com/mcp`). When set, the strategy automatically includes it in authorization and token requests. Make sure the same value appears in `trusted_audiences` so ID token audience validation succeeds. |
 | [`site`](#authentication-strategies-stytch-site){: #authentication-strategies-stytch-site } | `(any, any -> any) \| module \| String.t` |  | Deprecated: Use `base_url` instead. |
 | [`prevent_hijacking?`](#authentication-strategies-stytch-prevent_hijacking?){: #authentication-strategies-stytch-prevent_hijacking? } | `boolean` | `true` | Requires a confirmation add_on to be present if the password strategy is used with the same identity_field. |
 | [`auth_method`](#authentication-strategies-stytch-auth_method){: #authentication-strategies-stytch-auth_method } | `nil \| :client_secret_basic \| :client_secret_post \| :client_secret_jwt \| :private_key_jwt` | `:client_secret_post` | The authentication strategy used, optional. If not set, no authentication will be used during the access token request. |
 | [`client_secret`](#authentication-strategies-stytch-client_secret){: #authentication-strategies-stytch-client_secret } | `(any, any -> any) \| module \| String.t` |  | The OAuth2 client secret. Required if :auth_method is `:client_secret_basic`, `:client_secret_post` or `:client_secret_jwt`. Takes either a module which implements the `AshAuthentication.Secret` behaviour, a 2 arity anonymous function or a string. |
 | [`trusted_audiences`](#authentication-strategies-stytch-trusted_audiences){: #authentication-strategies-stytch-trusted_audiences } | `(any, any -> any) \| module \| list(any) \| nil` |  | A list of audiences which are trusted. Takes either a module which implements the `AshAuthentication.Secret` behaviour, a 2 arity anonymous function or a string. |
 | [`private_key`](#authentication-strategies-stytch-private_key){: #authentication-strategies-stytch-private_key } | `(any, any -> any) \| module \| String.t` |  | The private key to use if `:auth_method` is `:private_key_jwt`. Takes either a module which implements the `AshAuthentication.Secret` behaviour, a 2 arity anonymous function or a string. |
-| [`code_verifier`](#authentication-strategies-stytch-code_verifier){: #authentication-strategies-stytch-code_verifier } | `boolean` | `false` | Boolean to generate and use a random 128 byte long url safe code verifier for PKCE flow, optional, defaults to false. When set to true the session params will contain :code_verifier, :code_challenge, and :code_challenge_method params |
-| [`authorization_params`](#authentication-strategies-stytch-authorization_params){: #authentication-strategies-stytch-authorization_params } | `(any, any -> any) \| module \| keyword \| nil` | `[]` | Any additional parameters to encode in the request phase. eg: `authorization_params scope: "openid profile email"` Include a `resource` indicator that matches your MCP server when required by Stytch (eg `authorization_params scope: "openid profile email", resource: "https://example.com/mcp"`). |
+| [`code_verifier`](#authentication-strategies-stytch-code_verifier){: #authentication-strategies-stytch-code_verifier } | `boolean` | `true` | Boolean to generate and use a random 128 byte long url safe code verifier for PKCE flow, optional, defaults to false. When set to true the session params will contain :code_verifier, :code_challenge, and :code_challenge_method params |
+| [`authorization_params`](#authentication-strategies-stytch-authorization_params){: #authentication-strategies-stytch-authorization_params } | `(any, any -> any) \| module \| keyword \| nil` | `[]` | Any additional parameters to encode in the request phase. eg: `authorization_params scope: "openid profile email"` Scopes still belong here. When you also set `resource_indicator`, the strategy automatically adds the `resource` parameter for you. |
 | [`registration_enabled?`](#authentication-strategies-stytch-registration_enabled?){: #authentication-strategies-stytch-registration_enabled? } | `boolean` | `true` | If enabled, new users will be able to register for your site when authenticating and not already present. If not, only existing users will be able to authenticate. |
 | [`register_action_name`](#authentication-strategies-stytch-register_action_name){: #authentication-strategies-stytch-register_action_name } | `atom` |  | The name of the action to use to register a user, if `registration_enabled?` is `true`. Defaults to `register_with_<name>` See the "Registration and Sign-in" section of the strategy docs for more. |
 | [`sign_in_action_name`](#authentication-strategies-stytch-sign_in_action_name){: #authentication-strategies-stytch-sign_in_action_name } | `atom` |  | The name of the action to use to sign in an existing user, if `sign_in_enabled?` is `true`. Defaults to `sign_in_with_<strategy>`, which is generated for you by default. See the "Registration and Sign-in" section of the strategy docs for more information. |

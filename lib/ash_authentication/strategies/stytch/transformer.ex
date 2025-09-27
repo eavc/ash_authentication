@@ -6,8 +6,8 @@ defmodule AshAuthentication.Strategy.Stytch.Transformer do
   `:stytch`.
   """
 
-  alias AshAuthentication.Strategy.{OAuth2, Oidc}
   alias AshAuthentication.Strategy
+  alias AshAuthentication.Strategy.{OAuth2, Oidc}
   alias Spark.Dsl.Transformer
   import AshAuthentication.Strategy.Custom.Helpers, only: [put_strategy: 2]
 

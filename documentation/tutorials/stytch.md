@@ -8,7 +8,7 @@ This tutorial walks through integrating [Stytch Connected Apps](https://stytch.c
 2. Navigate to **Connected Apps → MCP Server** and create a new MCP server (or use an existing one).
 3. Copy the **Client ID**, **Client Secret**, and **Project Domain**. You will need all three in your Elixir configuration.
 4. Add an **Allowed Redirect URL** that points at the callback route AshAuthentication generates. It has the shape `https://your-app.com/auth/<subject>/stytch/callback`.
-5. (Optional but recommended) Configure a **Resource indicator** value that represents your MCP server. You will provide this value in the `authorization_params` when configuring the strategy.
+5. (Optional but recommended) Configure a **Resource indicator** value that represents your MCP server. You will provide this value through the strategy’s `resource_indicator` option.
 
 > ### HTTPS strongly recommended {: .tip }
 > Stytch expects production callback URLs to use HTTPS. During local development you can tunnel a local Phoenix server through a tool like [ngrok](https://ngrok.com/) and register that HTTPS URL.
@@ -31,7 +31,8 @@ defmodule MyApp.Accounts.User do
         redirect_uri MyApp.StytchSecrets
         base_url MyApp.StytchSecrets
         trusted_audiences MyApp.StytchSecrets
-        authorization_params scope: "openid profile email", resource: "https://example.com/mcp"
+        authorization_params scope: "openid profile email"
+        resource_indicator MyApp.StytchSecrets
       end
     end
   end
@@ -63,6 +64,9 @@ defmodule MyApp.StytchSecrets do
   def secret_for([:authentication, :strategies, :stytch, :trusted_audiences], MyApp.Accounts.User, _opts),
     do: fetch(:trusted_audiences)
 
+  def secret_for([:authentication, :strategies, :stytch, :resource_indicator], MyApp.Accounts.User, _opts),
+    do: fetch(:resource_indicator)
+
   defp fetch(key) do
     :my_app
     |> Application.get_env(:stytch, [])
@@ -71,7 +75,7 @@ defmodule MyApp.StytchSecrets do
 end
 ```
 
-Populate the application environment (or an alternative secret backend) with the values you copied from Stytch. For `trusted_audiences`, use the expected audience claim for your MCP server.
+Populate the application environment (or an alternative secret backend) with the values you copied from Stytch. For `trusted_audiences`, use the expected audience claim for your MCP server, and for `resource_indicator` supply the MCP resource URI (for example, `https://example.com/mcp`).
 
 ## Register action
 
@@ -121,11 +125,11 @@ When using Stytch to authorize Remote MCP servers, there are a few extra pieces 
   - `authorization_servers` – an array with your Stytch issuer (your project domain).
   - `scopes_supported` – the scopes your MCP server understands (e.g. `openid`, `profile`, `email`, plus any resource-specific scopes).
 
-- Resource indicator: In your Stytch strategy, include the same `resource` value in `authorization_params`. Example: `authorization_params scope: "openid profile email", resource: "https://example.com/mcp"`.
+- Resource indicator: Configure the same `resource` value on the strategy’s `resource_indicator` option. AshAuthentication injects it automatically into both the authorization and token requests so MCP clients comply with RFC 8707 without extra boilerplate.
 
 - Dynamic Client Registration (DCR): MCP clients obtain `client_id`/`client_secret` by registering against Stytch’s DCR endpoint. This is handled by the MCP client and Stytch — you only reference those credentials in your server via `AshAuthentication.Secret`.
 
-- Audience validation: If your access tokens include an `aud` claim tied to the `resource` URI, configure `trusted_audiences` in your strategy to contain that URI so tokens are accepted only for your MCP server.
+- Audience validation: Tokens issued by Stytch include an `aud` claim. Ensure `trusted_audiences` contains the same `resource_indicator` value (you'll see a compile-time warning if it does not). At runtime the Assent verifier will reject tokens whose `aud` is not in that list, so keep it in sync with the PRM document.
 
 - Discovery: Stytch publishes OAuth 2.1 Authorization Server metadata at `/.well-known/oauth-authorization-server` (not `/.well-known/openid-configuration`). The Stytch strategy defaults to this path and Assent uses the needed fields from that document.
 
@@ -137,6 +141,17 @@ Example PRM payload your MCP server might expose:
   "authorization_servers": ["https://your-project.customers.stytch.com"],
   "scopes_supported": ["openid", "profile", "email"]
 }
+```
+
+You can generate this payload directly from your strategy configuration using `AshAuthentication.Strategy.Stytch.PRM.build/3` and `json/2`:
+
+```elixir
+resource = "https://example.com/mcp"
+issuer = "https://your-project.customers.stytch.com"
+scopes = ["openid", "profile", "email", "mcp:tools:read"]
+
+metadata = AshAuthentication.Strategy.Stytch.PRM.build(resource, [issuer], scopes: scopes)
+File.write!("priv/static/.well-known/oauth-protected-resource", AshAuthentication.Strategy.Stytch.PRM.json(metadata))
 ```
 
 For the latest MCP-related guidance, see Stytch’s Connected Apps documentation and the MCP specification.
