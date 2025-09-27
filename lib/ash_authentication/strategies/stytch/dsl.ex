@@ -73,13 +73,13 @@ defmodule AshAuthentication.Strategy.Stytch.Dsl do
       doc =
         [
           existing_doc,
-          "The relative path used to fetch Stytch's OAuth authorization server metadata. Defaults to `/.well-known/oauth-authorization-server`."
+          "Defaults to Stytch's OIDC discovery document at `/.well-known/openid-configuration`. Override only if you need the OAuth 2.1 authorization-server metadata or are pointing at a mock issuer."
         ]
         |> Enum.reject(&(&1 == ""))
         |> Enum.join(" ")
 
       opts
-      |> Keyword.put(:default, "/.well-known/oauth-authorization-server")
+      |> Keyword.put(:default, "/.well-known/openid-configuration")
       |> Keyword.put(:doc, doc)
     end)
     |> update_option(:code_verifier, &Keyword.put(&1, :default, true))

@@ -162,6 +162,7 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
       config =
         config
         |> maybe_apply_resource_indicator(strategy)
+        |> ensure_resource_trusted(strategy)
         |> Map.put(:jwt_algorithm, jwt_algorithm)
         |> Map.put(:redirect_uri, redirect_uri)
         |> Map.update(:client_authentication_method, nil, &to_string/1)
@@ -298,6 +299,27 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
         config
     end
   end
+
+  defp ensure_resource_trusted(config, %{provider: :stytch}) do
+    resource = Map.get(config, :resource_indicator)
+
+    case {resource, Map.get(config, :trusted_audiences)} do
+      {resource, audiences} when is_binary(resource) and resource != "" and is_list(audiences) ->
+        if resource in audiences do
+          config
+        else
+          Map.put(config, :trusted_audiences, audiences ++ [resource])
+        end
+
+      {resource, nil} when is_binary(resource) and resource != "" ->
+        Map.put(config, :trusted_audiences, [resource])
+
+      _ ->
+        config
+    end
+  end
+
+  defp ensure_resource_trusted(config, _strategy), do: config
 
   defp to_keyword_list(params) when is_list(params), do: params
   defp to_keyword_list(%{} = params), do: Enum.to_list(params)

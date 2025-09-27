@@ -28,7 +28,7 @@ defmodule AshAuthentication.Strategy.Stytch.StrategyTest do
       assert strategy.provider == :stytch
       assert strategy.icon == :stytch
       assert strategy.assent_strategy == Assent.Strategy.OIDC
-      assert strategy.openid_configuration_uri == "/.well-known/oauth-authorization-server"
+      assert strategy.openid_configuration_uri == "/.well-known/openid-configuration"
     end
   end
 
@@ -77,6 +77,9 @@ defmodule AshAuthentication.Strategy.Stytch.StrategyTest do
       |> expect(:authorize_url, fn config ->
         params = Keyword.fetch!(config, :authorization_params)
         assert Keyword.get(params, :resource) == "https://example.com/mcp"
+
+        audiences = Keyword.fetch!(config, :trusted_audiences)
+        assert "https://example.com/mcp" in audiences
 
         {:ok, %{url: "https://stytch.example.com/oauth/authorize", session_params: %{}}}
       end)

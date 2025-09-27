@@ -22,8 +22,8 @@ defmodule AshAuthentication.Strategy.Stytch.Verifier do
     unless resource in audiences do
       Logger.warning("""
       [AshAuthentication.Stytch] `resource_indicator` #{inspect(resource)} is not present in
-      `trusted_audiences`. Tokens issued for that resource will be rejected unless you add it to the
-      trusted audiences list.
+      `trusted_audiences`. The strategy now appends it at runtime for safety, but you should keep the
+      values aligned to avoid surprise configuration drift.
       """)
     end
   end

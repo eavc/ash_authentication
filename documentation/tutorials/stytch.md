@@ -131,7 +131,9 @@ When using Stytch to authorize Remote MCP servers, there are a few extra pieces 
 
 - Audience validation: Tokens issued by Stytch include an `aud` claim. Ensure `trusted_audiences` contains the same `resource_indicator` value (you'll see a compile-time warning if it does not). At runtime the Assent verifier will reject tokens whose `aud` is not in that list, so keep it in sync with the PRM document.
 
-- Discovery: Stytch publishes OAuth 2.1 Authorization Server metadata at `/.well-known/oauth-authorization-server` (not `/.well-known/openid-configuration`). The Stytch strategy defaults to this path and Assent uses the needed fields from that document.
+- Validate access tokens: Stytch does not expose an introspection endpoint. Your MCP server must fetch Stytch's JWKS and validate JWT signatures and claims locally (e.g. with `Joken`). Verify `aud`, `iss`, `exp`, and ensure the `resource_indicator` matches before authorizing tool access.
+
+- Discovery: Stytch serves both the OAuth 2.1 Authorization Server metadata (`/.well-known/oauth-authorization-server`) and the OIDC discovery document (`/.well-known/openid-configuration`). The strategy defaults to the OIDC endpoint so Assent can reach the `userinfo` endpoint automatically.
 
 Example PRM payload your MCP server might expose:
 
@@ -143,7 +145,7 @@ Example PRM payload your MCP server might expose:
 }
 ```
 
-You can generate this payload directly from your strategy configuration using `AshAuthentication.Strategy.Stytch.PRM.build/3` and `json/2`:
+You can generate this payload directly from your strategy configuration using `AshAuthentication.Strategy.Stytch.PRM.build/3` and `json/2` and then serve it from a Plug or Phoenix route (for example, by mounting a `PRMPlug` at `/.well-known/oauth-protected-resource`):
 
 ```elixir
 resource = "https://example.com/mcp"
