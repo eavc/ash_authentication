@@ -5,11 +5,28 @@ defmodule AshAuthentication.Strategy.Stytch.Verifier do
   Inherits the default OIDC validations.
   """
 
+  require Logger
   alias AshAuthentication.Strategy.Oidc
 
   @doc false
   @spec verify(struct, map) :: :ok | {:error, Exception.t()}
   def verify(strategy, dsl_state) do
-    Oidc.Verifier.verify(strategy, dsl_state)
+    with :ok <- Oidc.Verifier.verify(strategy, dsl_state) do
+      maybe_warn_missing_audience(strategy)
+      :ok
+    end
   end
+
+  defp maybe_warn_missing_audience(%{resource_indicator: resource, trusted_audiences: audiences})
+       when is_binary(resource) and is_list(audiences) do
+    unless resource in audiences do
+      Logger.warning("""
+      [AshAuthentication.Stytch] `resource_indicator` #{inspect(resource)} is not present in
+      `trusted_audiences`. Tokens issued for that resource will be rejected unless you add it to the
+      trusted audiences list.
+      """)
+    end
+  end
+
+  defp maybe_warn_missing_audience(_strategy), do: :ok
 end

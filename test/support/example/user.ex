@@ -336,7 +336,8 @@ defmodule Example.User do
         redirect_uri &get_config/2
         base_url &get_config/2
         trusted_audiences &get_config/2
-        authorization_params scope: "openid profile email", resource: "https://example.com/mcp"
+        authorization_params scope: "openid profile email"
+        resource_indicator(&get_config/2)
       end
 
       slack do

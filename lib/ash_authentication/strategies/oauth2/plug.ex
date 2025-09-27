@@ -16,6 +16,7 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
     :client_authentication_method,
     :id_token_signed_response_alg,
     :id_token_ttl_seconds,
+    :resource_indicator,
     :openid_configuration_uri
   ]
 
@@ -108,6 +109,14 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
            add_secret_value(
              config,
              strategy,
+             :resource_indicator,
+             true,
+             context
+           ),
+         {:ok, config} <-
+           add_secret_value(
+             config,
+             strategy,
              :openid_configuration,
              !strategy.openid_configuration,
              context
@@ -152,6 +161,7 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
            Info.authentication_tokens_signing_algorithm(strategy.resource) do
       config =
         config
+        |> maybe_apply_resource_indicator(strategy)
         |> Map.put(:jwt_algorithm, jwt_algorithm)
         |> Map.put(:redirect_uri, redirect_uri)
         |> Map.update(:client_authentication_method, nil, &to_string/1)
@@ -270,6 +280,51 @@ defmodule AshAuthentication.Strategy.OAuth2.Plug do
         {:error, reason}
     end
   end
+
+  defp maybe_apply_resource_indicator(config, strategy) do
+    case {strategy.provider, Map.get(config, :resource_indicator)} do
+      {:stytch, resource} when is_binary(resource) and resource != "" ->
+        config
+        |> Map.update(:authorization_params, [resource: resource], fn params ->
+          params
+          |> to_keyword_list()
+          |> Keyword.put_new(:resource, resource)
+        end)
+        |> Map.update(:http_adapter, nil, fn adapter ->
+          wrap_http_adapter(adapter, resource, strategy.provider)
+        end)
+
+      _ ->
+        config
+    end
+  end
+
+  defp to_keyword_list(params) when is_list(params), do: params
+  defp to_keyword_list(%{} = params), do: Enum.to_list(params)
+  defp to_keyword_list(_), do: []
+
+  defp wrap_http_adapter(nil, _resource, _provider), do: nil
+
+  defp wrap_http_adapter(
+         {AshAuthentication.Strategy.Stytch.HttpAdapter, opts},
+         resource,
+         :stytch
+       ) do
+    updated_opts = Keyword.put(opts, :resource_indicator, resource)
+    {AshAuthentication.Strategy.Stytch.HttpAdapter, updated_opts}
+  end
+
+  defp wrap_http_adapter(adapter, resource, :stytch) do
+    {underlying_module, underlying_opts} = normalize_http_adapter(adapter)
+
+    {AshAuthentication.Strategy.Stytch.HttpAdapter,
+     [adapter: {underlying_module, underlying_opts}, resource_indicator: resource]}
+  end
+
+  defp wrap_http_adapter(adapter, _resource, _provider), do: adapter
+
+  defp normalize_http_adapter({module, opts}), do: {module, opts}
+  defp normalize_http_adapter(module) when is_atom(module), do: {module, []}
 
   defp add_http_adapter(config) do
     http_adapter =

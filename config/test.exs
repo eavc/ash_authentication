@@ -33,7 +33,8 @@ config :ash_authentication,
         redirect_uri: "http://localhost:4000/auth",
         client_secret: "pretend stytch client secret",
         base_url: "https://stytch.example.com/",
-        trusted_audiences: ["https://example.com/mcp"]
+        trusted_audiences: ["https://example.com/mcp"],
+        resource_indicator: "https://example.com/mcp"
       ]
     ],
     tokens: [

@@ -60,7 +60,7 @@ defmodule AshAuthentication.Strategy.Stytch.Dsl do
       doc =
         [
           existing_doc,
-          "Include a `resource` indicator that matches your MCP server when required by Stytch (eg `authorization_params scope: \"openid profile email\", resource: \"https://example.com/mcp\"`)."
+          "Scopes still belong here. When you also set `resource_indicator`, the strategy automatically adds the `resource` parameter for you."
         ]
         |> Enum.reject(&(&1 == ""))
         |> Enum.join(" ")
@@ -82,6 +82,13 @@ defmodule AshAuthentication.Strategy.Stytch.Dsl do
       |> Keyword.put(:default, "/.well-known/oauth-authorization-server")
       |> Keyword.put(:doc, doc)
     end)
+    |> update_option(:code_verifier, &Keyword.put(&1, :default, true))
+    |> Keyword.put(:resource_indicator,
+      type: AshAuthentication.Dsl.secret_type(),
+      doc:
+        "The RFC 8707 resource indicator to request tokens for (eg `https://example.com/mcp`). When set, the strategy automatically includes it in authorization and token requests. Make sure the same value appears in `trusted_audiences` so ID token audience validation succeeds.",
+      required: false
+    )
   end
 
   defp update_option(schema, key, func) do
